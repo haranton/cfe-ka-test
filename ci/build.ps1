@@ -38,7 +38,9 @@ $runner = (Get-Command vrunner -ErrorAction Stop).Source
 if ($config.tests.enabled -isnot [bool]) { throw 'tests.enabled должен быть true или false' }
 if ($config.tests.enabled) {
     if (-not $config.tests.command -or $config.tests.arguments -isnot [array] -or $config.tests.arguments.Count -eq 0) { throw 'Укажите tests.command и массив tests.arguments' }
-    $testCommand = (Get-Command ([string]$config.tests.command) -ErrorAction Stop).Source
+    $testCommandInfo = Get-Command ([string]$config.tests.command) -ErrorAction Stop
+    if ($testCommandInfo.CommandType -ne 'Application') { throw 'tests.command должен быть исполняемым файлом: vrunner, oscript или powershell.exe' }
+    $testCommand = $testCommandInfo.Source
 }
 if ($ValidateOnly) { Write-Host 'Конфиг проверен. Операции с базой не выполнялись.'; return }
 
