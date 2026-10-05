@@ -1,0 +1,8 @@
+build/
+*.log
+*.cf
+*.cfe
+*.dt
+*.1CD
+*.1CL
+*.1Cv8*

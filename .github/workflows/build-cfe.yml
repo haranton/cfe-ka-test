@@ -1,0 +1,97 @@
+name: Сборка CFE
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cfe-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_1c:
+    name: build_1c
+    runs-on: [self-hosted, Windows, X64, onec-cfe-ka-test]
+    timeout-minutes: 30
+    env:
+      ONEC_BASELINE_CF: ${{ vars.ONEC_BASELINE_CF }}
+      ONEC_BASELINE_SHA256: ${{ vars.ONEC_BASELINE_SHA256 }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Получить коммит
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Собрать расширение в отдельной базе
+        run: ./ci/build.ps1
+
+      - name: Сохранить логи и манифест
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cfe-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/*/logs/
+            build/*/build-result.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Сохранить файл поставки
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: cfe-${{ github.sha }}
+          path: build/*/artifacts/*.cfe
+          retention-days: 14
+          if-no-files-found: error
+
+  create_pr:
+    name: Открыть PR для ревью
+    needs: build_1c
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Создать PR после успешной сборки
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const head = context.ref.replace('refs/heads/', '');
+            const { data: branch } = await github.rest.repos.getBranch({ owner, repo, branch: head });
+            if (branch.commit.sha !== context.sha) {
+              core.info('В ветке уже есть новый коммит; PR создаст его успешная сборка.');
+              return;
+            }
+            const { data: pulls } = await github.rest.pulls.list({
+              owner, repo, state: 'open', head: `${owner}:${head}`, base: 'main'
+            });
+            if (pulls.length > 0) {
+              core.info(`PR уже существует: ${pulls[0].html_url}`);
+              return;
+            }
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const { data: pull } = await github.rest.pulls.create({
+              owner, repo, head, base: 'main',
+              title: `Изменения расширения: ${head}`,
+              body: [
+                'Расширение собрано в отдельной базе 1С поверх зафиксированного эталона.',
+                '',
+                `Коммит: ${context.sha}`,
+                `Сборка и артефакты: ${runUrl}`,
+                '',
+                'Модульные и сценарные тесты в этой версии CI не выполняются.',
+                'Проверьте изменения и выполните слияние вручную после ревью.'
+              ].join('\n')
+            });
+            await github.rest.pulls.requestReviewers({ owner, repo, pull_number: pull.number, reviewers: [owner] });
+            core.notice(`PR создан: ${pull.html_url}`);
