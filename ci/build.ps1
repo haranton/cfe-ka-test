@@ -89,8 +89,11 @@ try {
     $common = @('--ibconnection', $connection, '--v8version', $settings.platformVersion, '--src-format', 'xml')
     Invoke-VRunner 'initialize-base' (@('infobase', 'init', '--src', $BaselineFile) + $common)
 
+    # Платформа обновляет ConfigDumpInfo.xml при загрузке; работаем с копией исходников.
+    $buildSourcePath = Join-Path $runRoot 'source'
+    Copy-Item -LiteralPath $sourcePath -Destination $buildSourcePath -Recurse
     $cfeFile = Join-Path $artifactPath ($settings.extensionName + '.cfe')
-    Invoke-VRunner 'compile-extension' (@('cfe', 'compile', '--src', $sourcePath, '--extension-name', $settings.extensionName) + $common + @($cfeFile))
+    Invoke-VRunner 'compile-extension' (@('cfe', 'compile', '--src', $buildSourcePath, '--extension-name', $settings.extensionName) + $common + @($cfeFile))
     Invoke-VRunner 'update-extension-db' @('infobase', 'update', '--target', $settings.extensionName, '--ibconnection', $connection, '--v8version', $settings.platformVersion)
 
     if (-not (Test-Path -LiteralPath $cfeFile -PathType Leaf) -or (Get-Item -LiteralPath $cfeFile).Length -eq 0) {
