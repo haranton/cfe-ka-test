@@ -10,17 +10,19 @@ permissions:
   contents: read
 
 concurrency:
-  group: cfe-build-${{ github.ref }}
-  cancel-in-progress: true
+  group: onec-test-base
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   build_1c:
     name: build_1c
-    runs-on: [self-hosted, Windows, X64, onec-cfe-ka-test]
+    runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 30
     env:
-      ONEC_BASELINE_CF: ${{ vars.ONEC_BASELINE_CF }}
-      ONEC_BASELINE_SHA256: ${{ vars.ONEC_BASELINE_SHA256 }}
+      ONEC_CI_CONFIG: ${{ vars.ONEC_CI_CONFIG }}
+      VRUNNER_DBUSER: ${{ secrets.ONEC_DB_USER }}
+      VRUNNER_DBPWD: ${{ secrets.ONEC_DB_PASSWORD }}
     defaults:
       run:
         shell: powershell
@@ -30,7 +32,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Собрать расширение в отдельной базе
+      - name: Загрузить расширение в тестовую базу и выполнить проверки
         run: ./ci/build.ps1
 
       - name: Сохранить логи и манифест
@@ -40,6 +42,7 @@ jobs:
           name: cfe-logs-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/*/logs/
+            build/*/reports/
             build/*/build-result.json
           retention-days: 14
           if-no-files-found: warn
@@ -84,12 +87,12 @@ jobs:
               owner, repo, head, base: 'main',
               title: `Изменения расширения: ${head}`,
               body: [
-                'Расширение собрано в отдельной базе 1С поверх зафиксированного эталона.',
+                'Расширение загружено и обновлено в постоянной тестовой базе 1С.',
                 '',
                 `Коммит: ${context.sha}`,
                 `Сборка и артефакты: ${runUrl}`,
                 '',
-                'Модульные и сценарные тесты в этой версии CI не выполняются.',
+                'Включённые в конфиге проверки завершились успешно. Сведения о запуске тестов: build-result.json в артефактах.',
                 'Проверьте изменения и выполните слияние вручную после ревью.'
               ].join('\n')
             });
