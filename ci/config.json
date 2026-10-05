@@ -1,0 +1,21 @@
+{
+    "platformVersion": "8.3.27.1936",
+    "database": {
+        "connection": "",
+        "user": ""
+    },
+    "extension": {
+        "name": "MyExtension",
+        "source": "cfe"
+    },
+    "tests": {
+        "enabled": false,
+        "command": "vrunner",
+        "arguments": [
+            "test", "vanessa",
+            "--feature-path", "features",
+            "--report-format", "junit",
+            "--report-path", "%ONEC_CI_REPORTS%"
+        ]
+    }
+}
