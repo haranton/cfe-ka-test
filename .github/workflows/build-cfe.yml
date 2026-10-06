@@ -42,46 +42,46 @@ jobs:
       - name: Загрузить и обновить расширение
         run: vrunner cfe load
 
-  create_pr:
-    name: Открыть PR для ревью
-    needs: build_1c
-    if: github.ref != 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: Создать PR после успешной сборки
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const head = context.ref.replace('refs/heads/', '');
-            const { data: branch } = await github.rest.repos.getBranch({ owner, repo, branch: head });
-            if (branch.commit.sha !== context.sha) {
-              core.info('В ветке уже есть новый коммит; PR создаст его успешная сборка.');
-              return;
-            }
-            const { data: pulls } = await github.rest.pulls.list({
-              owner, repo, state: 'open', head: `${owner}:${head}`, base: 'main'
-            });
-            if (pulls.length > 0) {
-              core.info(`PR уже существует: ${pulls[0].html_url}`);
-              return;
-            }
-            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-            const { data: pull } = await github.rest.pulls.create({
-              owner, repo, head, base: 'main',
-              title: `Изменения расширения: ${head}`,
-              body: [
-                'Расширение загружено и обновлено в постоянной тестовой базе 1С.',
-                '',
-                `Коммит: ${context.sha}`,
-                `Проверка сборки: ${runUrl}`,
-                '',
-                'Загрузка и обновление расширения завершились успешно. Результат виден в шагах GitHub Actions.',
-                'Проверьте изменения и выполните слияние вручную после ревью.'
-              ].join('\n')
-            });
-            await github.rest.pulls.requestReviewers({ owner, repo, pull_number: pull.number, reviewers: [owner] });
-            core.notice(`PR создан: ${pull.html_url}`);
+  # create_pr:
+  #   name: Открыть PR для ревью
+  #   needs: build_1c
+  #   if: github.ref != 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     pull-requests: write
+  #   steps:
+  #     - name: Создать PR после успешной сборки
+  #       uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+  #       with:
+  #         script: |
+  #           const { owner, repo } = context.repo;
+  #           const head = context.ref.replace('refs/heads/', '');
+  #           const { data: branch } = await github.rest.repos.getBranch({ owner, repo, branch: head });
+  #           if (branch.commit.sha !== context.sha) {
+  #             core.info('В ветке уже есть новый коммит; PR создаст его успешная сборка.');
+  #             return;
+  #           }
+  #           const { data: pulls } = await github.rest.pulls.list({
+  #             owner, repo, state: 'open', head: `${owner}:${head}`, base: 'main'
+  #           });
+  #           if (pulls.length > 0) {
+  #             core.info(`PR уже существует: ${pulls[0].html_url}`);
+  #             return;
+  #           }
+  #           const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+  #           const { data: pull } = await github.rest.pulls.create({
+  #             owner, repo, head, base: 'main',
+  #             title: `Изменения расширения: ${head}`,
+  #             body: [
+  #               'Расширение загружено и обновлено в постоянной тестовой базе 1С.',
+  #               '',
+  #               `Коммит: ${context.sha}`,
+  #               `Проверка сборки: ${runUrl}`,
+  #               '',
+  #               'Загрузка и обновление расширения завершились успешно. Результат виден в шагах GitHub Actions.',
+  #               'Проверьте изменения и выполните слияние вручную после ревью.'
+  #             ].join('\n')
+  #           });
+  #           await github.rest.pulls.requestReviewers({ owner, repo, pull_number: pull.number, reviewers: [owner] });
+  #           core.notice(`PR создан: ${pull.html_url}`);
