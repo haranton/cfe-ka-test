@@ -1,4 +1,5 @@
 name: Проверка сборки расширения
+run-name: "${{ github.ref_name }} — ${{ github.sha }}"
 
 on:
   push:
@@ -10,8 +11,11 @@ permissions:
   contents: read
 
 concurrency:
+  # Все ветки используют одну базу: блокировка охватывает загрузку и все проверки.
+  # Имя группы должно совпадать во всех workflow, работающих с этой базой.
   group: onec-test-base
   cancel-in-progress: false
+  # Сохраняем до 100 ожидающих запусков вместо замены предыдущего ожидающего.
   queue: max
 
 jobs:
@@ -30,6 +34,10 @@ jobs:
       - name: Получить коммит
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Проверяем именно коммит этого запуска, даже если ветка уже продвинулась.
+          ref: ${{ github.sha }}
+          # Удаляем исходники и служебные изменения предыдущего прогона.
+          clean: true
           persist-credentials: false
 
       - name: Проверить подключение к тестовой базе
@@ -38,16 +46,19 @@ jobs:
           if (-not ($env:VRUNNER_IBCONNECTION -or $config.vrunner.ibconnection)) {
             throw 'Set vrunner.ibconnection or Actions Variable ONEC_TEST_CONNECTION'
           }
-      - name: Проверить возможность применения расширения
+      - name: Загрузить и обновить расширение
+        # Полная загрузка без --increment заменяет расширение исходниками этой ветки.
+        run: vrunner cfe load
+
+      - name: Проверить возможность применения загруженного расширения
         run: |
           $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
           vrunner infobase extensions check $config.vrunner.'extension-name'
 
-      - name: Загрузить и обновить расширение
-        run: vrunner cfe load
-
       - name: Проверить синтаксис расширения
-        run: vrunner validate syntax-check --target MyExtension --mode ThinClient --mode Server
+        run: |
+          $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
+          vrunner validate syntax-check --target $config.vrunner.'extension-name' --mode ThinClient --mode Server
 
   # create_pr:
   #   name: Открыть PR для ревью
