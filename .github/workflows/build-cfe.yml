@@ -1,4 +1,4 @@
-name: Сборка CFE
+name: Проверка сборки расширения
 
 on:
   push:
@@ -32,27 +32,15 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Подготовить сборку
+      - name: Проверить подключение к тестовой базе
         run: |
           $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
           if (-not ($env:VRUNNER_IBCONNECTION -or $config.vrunner.ibconnection)) {
             throw 'Укажите тестовую базу в vrunner.ibconnection или Actions Variable ONEC_TEST_CONNECTION'
           }
-          New-Item -ItemType Directory -Path build -Force | Out-Null
 
       - name: Загрузить и обновить расширение
         run: vrunner cfe load
-
-      - name: Выгрузить готовый CFE
-        run: vrunner cfe unload
-
-      - name: Сохранить файл поставки
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: cfe-${{ github.sha }}
-          path: build/*.cfe
-          retention-days: 14
-          if-no-files-found: error
 
   create_pr:
     name: Открыть PR для ревью
@@ -89,9 +77,9 @@ jobs:
                 'Расширение загружено и обновлено в постоянной тестовой базе 1С.',
                 '',
                 `Коммит: ${context.sha}`,
-                `Сборка и артефакты: ${runUrl}`,
+                `Проверка сборки: ${runUrl}`,
                 '',
-                'Загрузка и выгрузка CFE завершились успешно. Команды и результаты видны в шагах GitHub Actions.',
+                'Загрузка и обновление расширения завершились успешно. Результат виден в шагах GitHub Actions.',
                 'Проверьте изменения и выполните слияние вручную после ревью.'
               ].join('\n')
             });

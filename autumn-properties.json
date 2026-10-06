@@ -8,9 +8,6 @@
         "cfe": {
             "load": {
                 "src": "cfe"
-            },
-            "unload": {
-                "out": "build/extension.cfe"
             }
         }
     }
