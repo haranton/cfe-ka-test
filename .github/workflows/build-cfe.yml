@@ -38,14 +38,15 @@ jobs:
           if (-not ($env:VRUNNER_IBCONNECTION -or $config.vrunner.ibconnection)) {
             throw 'Set vrunner.ibconnection or Actions Variable ONEC_TEST_CONNECTION'
           }
-
-      - name: Загрузить и обновить расширение
-        run: vrunner cfe load
-
       - name: Проверить возможность применения расширения
         run: |
           $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
           vrunner infobase extensions check $config.vrunner.'extension-name'
+
+      - name: Загрузить и обновить расширение
+        run: vrunner cfe load
+
+
 
   # create_pr:
   #   name: Открыть PR для ревью

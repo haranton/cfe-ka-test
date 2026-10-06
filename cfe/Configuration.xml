@@ -66,6 +66,7 @@
 		<ChildObjects>
 			<Language>Русский</Language>
 			<Role>Расш1_ОсновнаяРоль</Role>
+			<CommonModule>Расш1_ОбщийМодуль1</CommonModule>
 			<Catalog>Расш1_Номенклатура</Catalog>
 		</ChildObjects>
 	</Configuration>
