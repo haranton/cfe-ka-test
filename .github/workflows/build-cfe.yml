@@ -36,7 +36,7 @@ jobs:
         run: |
           $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
           if (-not ($env:VRUNNER_IBCONNECTION -or $config.vrunner.ibconnection)) {
-            throw 'Укажите тестовую базу в vrunner.ibconnection или Actions Variable ONEC_TEST_CONNECTION'
+            throw 'Set vrunner.ibconnection or Actions Variable ONEC_TEST_CONNECTION'
           }
 
       - name: Загрузить и обновить расширение
