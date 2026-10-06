@@ -46,7 +46,8 @@ jobs:
       - name: Загрузить и обновить расширение
         run: vrunner cfe load
 
-
+      - name: Проверить синтаксис расширения
+        run: vrunner validate syntax-check --target MyExtension --mode ThinClient --mode Server
 
   # create_pr:
   #   name: Открыть PR для ревью
