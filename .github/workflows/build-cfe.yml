@@ -42,6 +42,11 @@ jobs:
       - name: Загрузить и обновить расширение
         run: vrunner cfe load
 
+      - name: Проверить возможность применения расширения
+        run: |
+          $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
+          vrunner infobase extensions check $config.vrunner.'extension-name'
+
   # create_pr:
   #   name: Открыть PR для ревью
   #   needs: build_1c
