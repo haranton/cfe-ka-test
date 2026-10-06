@@ -1,0 +1,26 @@
+{
+    "ci": {
+        "testsEnabled": false
+    },
+    "vrunner": {
+        "ibconnection": "",
+        "v8version": "8.3.27.1936",
+        "extension-name": "MyExtension",
+        "src-format": "xml",
+        "cfe": {
+            "load": {
+                "src": "cfe"
+            },
+            "unload": {
+                "out": "build/extension.cfe"
+            }
+        },
+        "test": {
+            "vanessa": {
+                "feature-path": "features",
+                "report-format": ["junit"],
+                "report-path": "build/reports"
+            }
+        }
+    }
+}
