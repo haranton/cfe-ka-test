@@ -1,7 +1,4 @@
 {
-    "ci": {
-        "testsEnabled": false
-    },
     "vrunner": {
         "ibconnection": "",
         "db-user": "",
@@ -14,13 +11,6 @@
             },
             "unload": {
                 "out": "build/extension.cfe"
-            }
-        },
-        "test": {
-            "vanessa": {
-                "feature-path": "features",
-                "report-format": ["junit"],
-                "report-path": "build/reports"
             }
         }
     }

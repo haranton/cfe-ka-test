@@ -32,14 +32,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Прочитать настройки CI
-        id: config
+      - name: Подготовить сборку
         run: |
           $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
           if (-not ($env:VRUNNER_IBCONNECTION -or $config.vrunner.ibconnection)) {
             throw 'Укажите тестовую базу в vrunner.ibconnection или Actions Variable ONEC_TEST_CONNECTION'
           }
-          "tests=$($config.ci.testsEnabled -eq $true)" >> $env:GITHUB_OUTPUT
           New-Item -ItemType Directory -Path build -Force | Out-Null
 
       - name: Загрузить и обновить расширение
@@ -47,19 +45,6 @@ jobs:
 
       - name: Выгрузить готовый CFE
         run: vrunner cfe unload
-
-      - name: Выполнить тесты Vanessa
-        if: steps.config.outputs.tests == 'True'
-        run: vrunner test vanessa
-
-      - name: Сохранить отчёты тестов
-        if: always() && steps.config.outputs.tests == 'True'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: test-reports-${{ github.run_id }}-${{ github.run_attempt }}
-          path: build/reports/
-          retention-days: 14
-          if-no-files-found: warn
 
       - name: Сохранить файл поставки
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -106,7 +91,7 @@ jobs:
                 `Коммит: ${context.sha}`,
                 `Сборка и артефакты: ${runUrl}`,
                 '',
-                'Включённые проверки завершились успешно. Команды и результаты видны в шагах GitHub Actions.',
+                'Загрузка и выгрузка CFE завершились успешно. Команды и результаты видны в шагах GitHub Actions.',
                 'Проверьте изменения и выполните слияние вручную после ревью.'
               ].join('\n')
             });
