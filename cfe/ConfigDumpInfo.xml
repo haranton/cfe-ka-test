@@ -2,7 +2,9 @@
 <ConfigDumpInfo xmlns="http://v8.1c.ru/8.3/xcf/dumpinfo" xmlns:xen="http://v8.1c.ru/8.3/xcf/enums" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" format="Hierarchical" version="2.20">
 	<ConfigVersions>
 		<Metadata name="Catalog.Расш1_Номенклатура" id="53c45472-cbdf-4c9f-984d-5a06a443ee36" configVersion="a04e16b174cf980a6cad8433672555755abd2ebf"/>
-		<Metadata name="Configuration.MyExtension" id="c47bd94d-f323-40ec-89f4-91aaed9c8bea" configVersion="9695bc0953b7f685aff044368b2f1dcbc45c785a"/>
+		<Metadata name="CommonModule.Расш1_ОбщийМодуль1" id="475454f9-cfed-4ef2-b5d3-10fda6693c3c" configVersion="1fd06050db47e844f97d625fba2c1e9e976d848f"/>
+		<Metadata name="CommonModule.Расш1_ОбщийМодуль1.Module" id="475454f9-cfed-4ef2-b5d3-10fda6693c3c.0" configVersion="b30e48c47c13a11d49a645f8fd71b1e243bd9dc5"/>
+		<Metadata name="Configuration.MyExtension" id="c47bd94d-f323-40ec-89f4-91aaed9c8bea" configVersion="2e4d16cba70c425d5a1d09d6ea9782b49619b8d7"/>
 		<Metadata name="Language.Русский" id="b25aca70-f802-40a5-98f1-86f0ad20d2c6" configVersion="a6752bdb2f1e5599f9d21aa77777d020026122cd"/>
 		<Metadata name="Role.Расш1_ОсновнаяРоль" id="2f5d046b-f85f-4bda-85e7-1f0a3156c15d" configVersion="b703f54f0d48efa9b9ccc96004741fa7607262c5"/>
 	</ConfigVersions>
