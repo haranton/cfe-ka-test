@@ -7,11 +7,22 @@ GitHub Actions загружает XML-исходники, обновляет р�
 Укажите в autumn-properties.json:
 
 - vrunner.ibconnection — существующую тестовую базу: /FC:\1C\Test либо /Sserver\database.
+- vrunner.db-user — имя пользователя информационной базы 1С.
+- vrunner.db-pwd — пароль этого пользователя; пустая строка, если пароля нет.
 - vrunner.v8version — установленную версию платформы.
 - vrunner.extension-name — имя расширения.
 - vrunner.cfe.load.src — папку XML-исходников или готовый CFE.
 
-Сейчас подключение настроено на файловую базу C:\Users\haran\OneDrive\Документы\vanessa, расширение MyExtension, платформу 8.3.27.1936. Для этой базы имя пользователя оставлено пустым. Если база требует авторизацию, пароль храните в Actions Secret ONEC_DB_PASSWORD, имя пользователя — в ONEC_DB_USER. Локально используйте переменные VRUNNER_DBPWD и VRUNNER_DBUSER.
+Сейчас подключение настроено на файловую базу C:\Users\haran\OneDrive\Документы\vanessa, расширение MyExtension, платформу 8.3.27.1936. Пользователь и пароль оставлены пустыми: заполните db-user и db-pwd реальными реквизитами входа в Конфигуратор. CI и локальные команды читают их из этого JSON; Secrets ONEC_DB_USER и ONEC_DB_PASSWORD больше не используются workflow.
+
+Например, в существующей секции vrunner задайте:
+
+```json
+"db-user": "Администратор",
+"db-pwd": "ВАШ_ПАРОЛЬ"
+```
+
+Файл хранится в Git: указанный в нем пароль будет виден всем, кто имеет доступ к репозиторию, и останется в истории коммитов. Локальные переменные VRUNNER_DBUSER и VRUNNER_DBPWD, если они заданы, имеют приоритет над JSON; очистите их, чтобы использовать только конфиг.
 
 При переносе проекта меняйте этот JSON. Если адрес базы должен оставаться только в настройках GitHub, задайте Actions Variable ONEC_TEST_CONNECTION: переменная VRUNNER_IBCONNECTION имеет приоритет над JSON.
 
@@ -78,7 +89,7 @@ actions/checkout с clean: true очищает оставшиеся файлы �
 
 ## Перенос
 
-Подключите Windows runner к новому репозиторию, установите 1С, OneScript и Vanessa Runner, измените autumn-properties.json и Secrets. В GitHub разрешите Actions создавать PR и настройте защиту main с проверкой build_1c и одним одобрением.
+Подключите Windows runner к новому репозиторию, установите 1С, OneScript и Vanessa Runner, измените autumn-properties.json. В GitHub разрешите Actions создавать PR и настройте защиту main с проверкой build_1c и одним одобрением.
 
 ITSM-агент отправляет ветки в этот репозиторий. Если агент работает в другом GitHub workflow, используйте GitHub App token или PAT: push через встроенный GITHUB_TOKEN не запускает следующий workflow.
 
