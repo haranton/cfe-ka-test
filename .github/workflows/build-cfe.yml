@@ -20,7 +20,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 30
     env:
-      ONEC_CI_CONFIG: ${{ vars.ONEC_CI_CONFIG }}
+      VRUNNER_IBCONNECTION: ${{ vars.ONEC_TEST_CONNECTION }}
       VRUNNER_DBUSER: ${{ secrets.ONEC_DB_USER }}
       VRUNNER_DBPWD: ${{ secrets.ONEC_DB_PASSWORD }}
     defaults:
@@ -32,18 +32,32 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Загрузить расширение в тестовую базу и выполнить проверки
-        run: ./ci/build.ps1
+      - name: Прочитать настройки CI
+        id: config
+        run: |
+          $config = Get-Content autumn-properties.json -Encoding UTF8 -Raw | ConvertFrom-Json
+          if (-not ($env:VRUNNER_IBCONNECTION -or $config.vrunner.ibconnection)) {
+            throw 'Укажите тестовую базу в vrunner.ibconnection или Actions Variable ONEC_TEST_CONNECTION'
+          }
+          "tests=$($config.ci.testsEnabled -eq $true)" >> $env:GITHUB_OUTPUT
+          New-Item -ItemType Directory -Path build -Force | Out-Null
 
-      - name: Сохранить логи и манифест
-        if: always()
+      - name: Загрузить и обновить расширение
+        run: vrunner cfe load
+
+      - name: Выгрузить готовый CFE
+        run: vrunner cfe unload
+
+      - name: Выполнить тесты Vanessa
+        if: steps.config.outputs.tests == 'True'
+        run: vrunner test vanessa
+
+      - name: Сохранить отчёты тестов
+        if: always() && steps.config.outputs.tests == 'True'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: cfe-logs-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            build/*/logs/
-            build/*/reports/
-            build/*/build-result.json
+          name: test-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/reports/
           retention-days: 14
           if-no-files-found: warn
 
@@ -51,7 +65,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cfe-${{ github.sha }}
-          path: build/*/artifacts/*.cfe
+          path: build/*.cfe
           retention-days: 14
           if-no-files-found: error
 
@@ -92,7 +106,7 @@ jobs:
                 `Коммит: ${context.sha}`,
                 `Сборка и артефакты: ${runUrl}`,
                 '',
-                'Включённые в конфиге проверки завершились успешно. Сведения о запуске тестов: build-result.json в артефактах.',
+                'Включённые проверки завершились успешно. Команды и результаты видны в шагах GitHub Actions.',
                 'Проверьте изменения и выполните слияние вручную после ревью.'
               ].join('\n')
             });

@@ -4,6 +4,7 @@
     },
     "vrunner": {
         "ibconnection": "",
+        "db-user": "",
         "v8version": "8.3.27.1936",
         "extension-name": "MyExtension",
         "src-format": "xml",
